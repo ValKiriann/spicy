@@ -1,0 +1,23 @@
+{
+  "name": "spicy",
+  "version": "0.0.1",
+  "description": "spicy is magic",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ValKiriann/spicy.git"
+  },
+  "author": "Ana Enríquez Alonso-Villalobos",
+  "license": "AGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/ValKiriann/spicy/issues"
+  },
+  "homepage": "https://github.com/ValKiriann/spicy#readme",
+  "dependencies": {
+    "dotenv": "^6.0.0",
+    "firebase-admin": "^5.12.1"
+  }
+}
