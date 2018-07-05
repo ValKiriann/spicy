@@ -15,25 +15,14 @@ function regionCode (region) {
 
 var db = {
     saveGame: function (game, title,  region){
-        return new Promise ((resolve, reject) => {
-            var hash = toolbox.hashGenerator(title);
-            var regionName = regionCode(region)
-            var ref = database.ref(`/games/${hash}`);
-            ref.update({
-                title,
-                [regionName]: game
-            }, function(error) {
-                  if (error) {
-                    reject(error);
-                  } else {
-                    resolve();
-                  }
-            });  
+        var hash = toolbox.hashGenerator(title);
+        var regionName = regionCode(region)
+        var ref = database.ref(`/games/${hash}`);
+        ref.update({
+            title,
+            [regionName]: game
         })
-
-            
     },
-    close: function() { console.log("Me cierooo...."); database.goOffline() }
 }
 
 
