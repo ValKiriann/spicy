@@ -1,3 +1,10 @@
-var db = require('./db');
+var nintendo = require('./eshop');
 
-db.saveGame("data...", "pacman 5", "america");
+//nintendo.getAmerica();
+nintendo.getEurope();
+/*
+let tiempo = new Date();
+tiempo = tiempo.getTime()
+console.log(tiempo)
+*/
+//nintendo.getAsia();
