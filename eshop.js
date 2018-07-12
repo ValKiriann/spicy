@@ -1,7 +1,11 @@
 const request = require('request');
 var db = require('./db');
+var xml2js = require('xml2js');
+
 var parseString = require('xml2js').parseString;
 var https = require('https');
+
+var parser = new xml2js.Parser({explicitArray : false});
 
 function xmlToJson(url, callback) {
   var req = https.get(url, function(res) {
@@ -20,7 +24,7 @@ function xmlToJson(url, callback) {
     }); 
 
     res.on('end', function() {
-      parseString(xml, function(err, result) {
+      parser.parseString(xml, function(err, result) {
         callback(null, result);
       });
     });
@@ -103,16 +107,17 @@ var nintendo = {
                 // Handle this however you like
                 return console.err(err);
             }
+        
             let info = JSON.stringify(data, null, 2);
             info = JSON.parse(info);
             let games = info.TitleInfoList.TitleInfo
             
             for(let i = 0; i<games.length;i++){
-                var gameCode = games[i].InitialCode[0]
+                var gameCode = games[i].InitialCode
                 gameCode = gameCode.replace("HAC", "");
                 gameCode = gameCode.slice(0, -1);
-                db.saveGameAsia(games[i], gameCode, "asia")
-                //console.log("Adding [JPN]" + gameCode)
+                db.saveGameAsia(games[i], gameCode)
+                console.log("Adding [JPN]" + gameCode)
                 asiaTotalGames++;
             }
             

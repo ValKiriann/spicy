@@ -8,66 +8,52 @@ admin.initializeApp({
 });
 
 var database = admin.database();
-
-function deepBalancer (route, target){
-    var segment = route.split('.');
-    for (var i in segment) {
-        if (!target[segment[i]]) {
-            target[segment[i]] = {};
-        }
-        target = target[segment[i]];
-    }
-}
+/*
+REPLACED BY A TOOLBOX FUNCTION INTERNATIONAL
 
 function gameCodeGenerator (code) {
     return typeof(code) === "string" && code.length > 3 ? code.slice(4, 8) : false;
 }
+*/
 
+
+// De VERDAD ESTO ES NECESARIO?!""
 function regionCode (region) {
     return region.trim().toLowerCase() + "_raw"
 }
 
-function regionData (region, game, currentGameData) {
-    region = region.split("_raw")[0];
+function regionData (region, game) {
+    //region = region.split("_raw")[0];
+    var data = {};
     switch (region) {
         case "america":
-            currentGameData.title = game.title
-            currentGameData.title_raw = game.title.toLowerCase()
-            currentGameData.game_code = gameCodeGenerator(game.game_code)
-            currentGameData.categories = game.categories.category;
-            deepBalancer("media.photos.america_front_box", currentGameData)
-            currentGameData.media.photos.america_front_box = game.front_box_art;
+            data.title = game.title
+            data.title_raw = game.title.toLowerCase()
+            data.america_gamecode = game.game_code
+            data.international_gamecode = toolbox.igamecodeGenerator(game.game_code)
+            data.categories = game.categories.category;
             break;
          case "asia":
-            //data.asia_uuid = "1234",
-            currentGameData.asia_raw = game;
-            deepBalancer("media.photos.asia_photo", currentGameData);
-            currentGameData.media.photos.asia_photo = game.ScreenshotImgURL[0];
-            currentGameData.last_verification =  new Date().getTime();
+            data.asia_gamecode = game.InitialCode
+            data.international_gamecode = toolbox.igamecodeGenerator(game.InitialCode)
+            data.title_asia = game.TitleName
             break;
         case "europe":
-            deepBalancer("media.photos.europe_front_box", currentGameData);
-            currentGameData.media.photos.europe_front_box = game.image_url.replace("//", "")
-            deepBalancer("media.photos.europe_rectangle", currentGameData)
-            currentGameData.media.photos.europe_rectangle = game.image_url_h2x1_s.replace("//", "");
-            deepBalancer("media.photos.europe_front_high", currentGameData);
-            currentGameData.media.photos.europe_front_high =  game.image_url_sq_s.replace("//", "")
-            currentGameData.europe_url = game.url;
-            currentGameData.languages = game.language_availability[0].split(",");
-            currentGameData.game_code = gameCodeGenerator(game.product_code_txt[0])
-            currentGameData.categories = game.game_categories_txt;
-            currentGameData.title = game.title;
-            currentGameData.title_raw = game.title.toLowerCase();
-            currentGameData.release_date = new Date(game.date_from).getTime();
-            currentGameData.game_code_raw = game.product_code_txt[0];
+            data.europe_url = game.url;
+            data.languages = game.language_availability[0].split(",");
+            data.europe_gamecode = game.product_code_txt[0]
+            data.international_gamecode = toolbox.igamecodeGenerator(game.product_code_txt[0])
+            data.categories = game.game_categories_txt;
+            data.title = game.title;
+            data.title_raw = game.title.toLowerCase();
+            data.release_date = new Date(game.date_from).getTime();
             break;
         default:
             console.log("No tenemos una logica específica para esta region tan rota...")
     }
-    return currentGameData
+    return data
 }
 
-var asiaCoincidences = 0;
 
 var db = {
     saveGame: function (game, title, region){
@@ -79,24 +65,38 @@ var db = {
             [regionName]: game
         };
         
-        ref.update(regionData(regionName, game, dataToStore))
+        ref.update(Object.assign(dataToStore, regionData(region, game)))
     },
-    saveGameAsia: function(game, gameCode, region){
-        var hash = toolbox.hashGenerator(gameCode);
-        var regionName = regionCode(region)
+    saveGameAsia: function(game, gameCode){
         var ref = database.ref(`/games/`);
-        ref.orderByChild("game_code").equalTo(gameCode).once("value").then(function(snapshot) {
-            
+        ref.orderByChild("international_gamecode").equalTo(gameCode).once("value").then(function(snapshot) {
             if (snapshot.val() !== null) {
                 var gameRef = Object.keys(snapshot.val())[0];
-                var currentGameData = snapshot.val()[gameRef];
-                var ref = database.ref(`/games/${gameRef}`);
-                ref.update(regionData(regionName, game, currentGameData))
+                // EXPLICAME POR QUE SALE ESTE ERROR MAGICO DE TOLWERCASE OF UNDEFINED
+                //console.log(gameRef.title_raw);
+                var data = snapshot.val()[gameRef];
+                var title = ""
+                if(typeof data.title !== 'undefined') {
+                    title = data.title
+                }else {
+                    title = game.TitleName
+                }
+                console.log("[JPN] -  Updating: " + title);
+                db.saveGame(game, title, "asia");
+                
+                
+                // PROBLEMA TM DE DARK SOULS
             } else {
-                var ref = database.ref(`/games/${hash}`);
-                ref.update(regionData("asia", game, {}));
-                console.log("[JPN] " + game.TitleName + " - No existe - " + gameCode)
+                var title = game.TitleName
+                console.log("[JPN] - New: " + title)
+                db.saveGame(game, title, "asia");
             }
+        });
+    },
+    cleanDB: function() {
+        var ref = database.ref(`/`);
+         ref.update({
+            games: ""
         });
     }
 }
