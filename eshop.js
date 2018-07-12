@@ -66,7 +66,8 @@ var nintendo = {
                     for(var i= 0;i<games.length;i++){
                     
                         var title = games[i].title
-                        db.saveGame(games[i], title, "america")
+                        var gamecode = games[i].game_code
+                        db.saveGame(games[i], title, "america", gamecode)
                         console.log("Adding [AME]" + title);
                         americaTotalGames++;
                     }
@@ -91,7 +92,8 @@ var nintendo = {
                 let games = info.response.docs
                 for (var i = 0; i<games.length;i++){
                     let title = games[i].title
-                    db.saveGame(games[i], title,region)
+                    let gamecode = games[i].product_code_txt[0]
+                    db.saveGame(games[i], title,region, gamecode)
                     console.log("Adding [EUR]" + title)
                     europeTotalGames++;
                 }

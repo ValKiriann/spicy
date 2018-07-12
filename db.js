@@ -8,19 +8,6 @@ admin.initializeApp({
 });
 
 var database = admin.database();
-/*
-REPLACED BY A TOOLBOX FUNCTION INTERNATIONAL
-
-function gameCodeGenerator (code) {
-    return typeof(code) === "string" && code.length > 3 ? code.slice(4, 8) : false;
-}
-*/
-
-
-// De VERDAD ESTO ES NECESARIO?!""
-function regionCode (region) {
-    return region.trim().toLowerCase() + "_raw"
-}
 
 function regionData (region, game) {
     //region = region.split("_raw")[0];
@@ -56,7 +43,61 @@ function regionData (region, game) {
 
 
 var db = {
-    saveGame: function (game, title, region){
+    saveGame: function (game, title, region, gamecode){
+        if(toolbox.validGamecode(gamecode)){
+            // GAMECODE EXISTE LUEGO TENEMOS PATRON INTERNACIONAL
+            var iGamecode = toolbox.iGamecodeGenerator(gamecode);
+            var ref = database.ref(`/games/`);
+            var regionName = region + "_raw";
+            var dataToStore = {
+                last_verification: new Date().getTime(),
+                [regionName]: game
+            };
+            
+            //pensar variable mas pequeña?
+            // TODO refactorizar ref2
+            ref.orderByChild("international_gamecode").equalTo(iGamecode).once("value").then(function(snapshot) {
+                // COINCIDE LUEGO EXISTE
+                if (snapshot.val() !== null) {
+                    var gameRef = Object.keys(snapshot.val())[0];
+                    var data = snapshot.val()[gameRef];
+                    console.log("[" + region + "] -  Updating: " + title);
+                    var ref2 = database.ref(`/games/${gameRef}`);
+                    ref2.update(Object.assign(dataToStore, regionData(region, game)))
+                }else {
+                    // NO COINCIDE LUEGO SE CREA
+                    var hash = toolbox.hashGenerator(title);
+                    var ref2 = database.ref(`/games/${hash}`);
+                    ref2.update(Object.assign(dataToStore, regionData(region, game)))
+                }
+            });
+        }else {
+            //TODAVIA SIN GAMECODE LUEGO NO TENEMOS PATRON INTERNACIONAL
+            // PROBAMOS POR SI ENCONTRAMOS POR EL TITULO UN MATCH
+            //TITLE RAW NEW EN UNA VAR
+            ref.orderByChild("title_raw").equalTo(title_raw).once("value").then(function(snapshot) {
+                // COINCIDE LUEGO EXISTE
+                if (snapshot.val() !== null) {
+                    var gameRef = Object.keys(snapshot.val())[0];
+                    var data = snapshot.val()[gameRef];
+                    console.log("[" + region + "] -  Updating: " + title);
+                    var ref2 = database.ref(`/games/${gameRef}`);
+                    ref2.update(Object.assign(dataToStore, regionData(region, game)))
+                }else {
+                    // NO COINCIDE LUEGO SE CREA
+                    var hash = toolbox.hashGenerator(title);
+                    var ref2 = database.ref(`/games/${hash}`);
+                    ref2.update(Object.assign(dataToStore, regionData(region, game)))
+                }
+            });
+            
+            
+            
+            // CREO QUE CON ESTA MEGA FUNCION DE SAVE GAME YA NO HACE FALTA LA DE ASIA
+        }
+        
+        
+        /*
         var hash = toolbox.hashGenerator(title);
         var regionName = regionCode(region)
         var ref = database.ref(`/games/${hash}`);
@@ -66,14 +107,13 @@ var db = {
         };
         
         ref.update(Object.assign(dataToStore, regionData(region, game)))
+        */
     },
     saveGameAsia: function(game, gameCode){
         var ref = database.ref(`/games/`);
         ref.orderByChild("international_gamecode").equalTo(gameCode).once("value").then(function(snapshot) {
             if (snapshot.val() !== null) {
                 var gameRef = Object.keys(snapshot.val())[0];
-                // EXPLICAME POR QUE SALE ESTE ERROR MAGICO DE TOLWERCASE OF UNDEFINED
-                //console.log(gameRef.title_raw);
                 var data = snapshot.val()[gameRef];
                 var title = ""
                 if(typeof data.title !== 'undefined') {
@@ -82,7 +122,7 @@ var db = {
                     title = game.TitleName
                 }
                 console.log("[JPN] -  Updating: " + title);
-                db.saveGame(game, title, "asia");
+                db.saveGame(game, title, "asia", gameCode);
                 
                 
                 // PROBLEMA TM DE DARK SOULS
@@ -93,7 +133,7 @@ var db = {
             }
         });
     },
-    cleanDB: function() {
+    flushDB: function() {
         var ref = database.ref(`/`);
          ref.update({
             games: ""

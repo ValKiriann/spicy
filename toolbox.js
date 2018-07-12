@@ -6,14 +6,23 @@ function hashGenerator (string) {
     return crypto.createHash('md5').update(title).digest("hex");
 }
 
-function igamecodeGenerator(gamecode) {
-    if(gamecode.length > 3) {
-        var char = gamecode.length
-        var start = char -1 ;
-        var finish = start - 4;
-        var international_gamecode = gamecode.substring(start, finish);
-        return international_gamecode;
-    } else { return false }
+function validGamecode(gamecode) {
+    return typeof gamecode !== undefined && gamecode.length > 3;
 }
 
-module.exports = { hashGenerator, igamecodeGenerator };
+//REFACTORIZAR NOMBrE A intGamecodeGen
+function iGamecodeGenerator(gamecode) {
+    var char = gamecode.length
+    var start = char -1 ;
+    var finish = start - 4;
+    var international_gamecode = gamecode.substring(start, finish);
+    return international_gamecode;
+}
+
+// De VERDAD ESTO ES NECESARIO?!""
+//BORRAR
+function regionCode (region) {
+    return region + "_raw"
+}
+
+module.exports = { hashGenerator, iGamecodeGenerator, validGamecode, regionCode };
