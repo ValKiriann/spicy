@@ -1,13 +1,18 @@
 var crypto = require('crypto');
 
+function cleanTitle(title){
+    title = title.toLowerCase();
+    var re = /\W/g;
+    return  title.replace(re, "");
+}
+
+
 function hashGenerator (string) {
-    var title = string.toLowerCase();
-    title = title.trim();
-    return crypto.createHash('md5').update(title).digest("hex");
+    return crypto.createHash('md5').update(string).digest("hex");
 }
 
 function validGamecode(gamecode) {
-    return typeof gamecode !== undefined && gamecode.length > 3;
+    return typeof(gamecode) === "string" && gamecode.length > 3;
 }
 
 //REFACTORIZAR NOMBrE A intGamecodeGen
@@ -15,8 +20,8 @@ function iGamecodeGenerator(gamecode) {
     var char = gamecode.length
     var start = char -1 ;
     var finish = start - 4;
-    var international_gamecode = gamecode.substring(start, finish);
-    return international_gamecode;
+    var intl_gamecode = gamecode.substring(start, finish);
+    return intl_gamecode;
 }
 
 // De VERDAD ESTO ES NECESARIO?!""
@@ -25,4 +30,4 @@ function regionCode (region) {
     return region + "_raw"
 }
 
-module.exports = { hashGenerator, iGamecodeGenerator, validGamecode, regionCode };
+module.exports = { hashGenerator, iGamecodeGenerator, validGamecode, regionCode, cleanTitle };

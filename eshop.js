@@ -44,7 +44,7 @@ let asiaTotalGames = 0;
 
 var nintendo = {
 
-    getAmerica: function(properties) {
+    getUsa: function(properties) {
         if(properties){
             //quito shop=ncom para que guarde más
             url = `https://www.nintendo.com/json/content/get/filter/game?system=switch&limit=${properties.limit}&offset=${properties.offset}${properties.category}${properties.price}${properties.availability}${properties.sale}${properties.demo}`
@@ -60,21 +60,18 @@ var nintendo = {
                 if(info && info.games && info.games.game){
                     
                     let games = info.games.game
-                    //let db = new DB();
-                    //db.onDB();
                     
                     for(var i= 0;i<games.length;i++){
                     
                         var title = games[i].title
                         var gamecode = games[i].game_code
-                        db.saveGame(games[i], title, "america", gamecode)
-                        console.log("Adding [AME]" + title);
+                        db.saveGame(games[i], title, "usa", gamecode)
                         americaTotalGames++;
                     }
-                    console.log("he terminado de añadir estos " + americaTotalGames)
+                    console.log("he terminado de añadir " + americaTotalGames)
                     control.offset += control.limit;
                     console.log(control.offset)
-                    nintendo.getAmerica();
+                    nintendo.getUsa();
                 }else {console.log("End of the History....");
                 console.log("Total Games:", americaTotalGames)}
                 
@@ -82,13 +79,13 @@ var nintendo = {
         })
     },
     
-    getEurope: function() {
+    getEur: function() {
         //url antigua con gamecard = http://search.nintendo-europe.com/en/select?fq=type%3AGAME%20AND%20(system_type%3A%22nintendoswitch_gamecard%22%20OR%20system_type%3A%22nintendoswitch_downloadsoftware%22%20OR%20system_type%3A%22nintendoswitch_digitaldistribution%22)%20AND%20product_code_txt%3A*&q=*&rows=1000&sort=sorting_title%20asc&start=0&wt=json
         request(`http://search.nintendo-europe.com/en/select?fq=type%3AGAME%20AND%20(system_type%3A%22nintendoswitch_downloadsoftware%22%20OR%20system_type%3A%22nintendoswitch_digitaldistribution%22)%20AND%20product_code_txt%3A*&q=*&rows=1000&sort=sorting_title%20asc&start=0&wt=json`, function (error, response, body) {
             if (!error && response.statusCode == 200) {
                 
                 let info = JSON.parse(body);
-                let region = "europe"
+                let region = "eur"
                 let games = info.response.docs
                 for (var i = 0; i<games.length;i++){
                     let title = games[i].title
@@ -101,7 +98,7 @@ var nintendo = {
             }
         })
     },
-    getAsia: function() {
+    getJpn: function() {
         var url = `https://www.nintendo.co.jp/data/software/xml/switch.xml`
         
         xmlToJson(url, function(err, data) {
@@ -116,10 +113,8 @@ var nintendo = {
             
             for(let i = 0; i<games.length;i++){
                 var gameCode = games[i].InitialCode
-                gameCode = gameCode.replace("HAC", "");
-                gameCode = gameCode.slice(0, -1);
-                db.saveGameAsia(games[i], gameCode)
-                console.log("Adding [JPN]" + gameCode)
+                var title = games[i].TitleName
+                db.saveGame(games[i], title, "jpn", gameCode)
                 asiaTotalGames++;
             }
             
@@ -129,6 +124,16 @@ var nintendo = {
     }
 }
 
+
+
+/**
+ * Represents a book.
+ * @constructor
+ * @param {string} title - The title of the book.
+ * @param {string} author - The author of the book.
+ */
+function Book(title, author) {
+}
 
 
 module.exports = nintendo

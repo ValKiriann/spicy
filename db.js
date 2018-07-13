@@ -13,27 +13,37 @@ function regionData (region, game) {
     //region = region.split("_raw")[0];
     var data = {};
     switch (region) {
-        case "america":
-            data.title = game.title
-            data.title_raw = game.title.toLowerCase()
-            data.america_gamecode = game.game_code
-            data.international_gamecode = toolbox.igamecodeGenerator(game.game_code)
+        case "usa":
+            data.title_usa = game.title
+            data.title_clean = toolbox.cleanTitle(game.title);
+            data.gamecode_usa = game.game_code
+            if(toolbox.validGamecode(game.game_code)){ data.gamecode_intl = toolbox.iGamecodeGenerator(game.game_code) }
             data.categories = game.categories.category;
+            if(game.nsuid) { data.nsuid_usa = game.nsuid }
+            data.img_usa = game.front_box_art;
+            if(game.video_link){
+                 data.video_usa = game.video_link
+            }
             break;
-         case "asia":
-            data.asia_gamecode = game.InitialCode
-            data.international_gamecode = toolbox.igamecodeGenerator(game.InitialCode)
-            data.title_asia = game.TitleName
+         case "jpn":
+            data.gamecode_jpn = game.InitialCode
+            if(toolbox.validGamecode(game.InitialCode)){ data.gamecode_intl = toolbox.iGamecodeGenerator(game.InitialCode) }
+            data.title_jpn = game.TitleName
+            data.nsuid_jpn = game.LinkURL.replace("/titles/","");
+            data.img_jpn = game.ScreenshotImgURL;
             break;
-        case "europe":
+        case "eur":
             data.europe_url = game.url;
             data.languages = game.language_availability[0].split(",");
-            data.europe_gamecode = game.product_code_txt[0]
-            data.international_gamecode = toolbox.igamecodeGenerator(game.product_code_txt[0])
+            data.gamecode_eur = game.product_code_txt[0]
+            if(toolbox.validGamecode(game.product_code_txt[0])){ data.gamecode_intl = toolbox.iGamecodeGenerator(game.product_code_txt[0]) }
             data.categories = game.game_categories_txt;
-            data.title = game.title;
-            data.title_raw = game.title.toLowerCase();
-            data.release_date = new Date(game.date_from).getTime();
+            data.title_eur = game.title;
+            data.title_clean = toolbox.cleanTitle(game.title);
+            data.releasedate = new Date(game.date_from).getTime();
+            data.nsuid_eur = game.nsuid_txt[0];
+            data.img_eur_sq = game.image_url_sq_s.replace("//", "https//");
+            data.img_eur_rc = game.image_url_h2x1_s.replace("//", "https//");
             break;
         default:
             console.log("No tenemos una logica específica para esta region tan rota...")
@@ -48,26 +58,27 @@ var db = {
             // GAMECODE EXISTE LUEGO TENEMOS PATRON INTERNACIONAL
             var iGamecode = toolbox.iGamecodeGenerator(gamecode);
             var ref = database.ref(`/games/`);
-            var regionName = region + "_raw";
+            var regionName = "raw_" + region;
             var dataToStore = {
                 last_verification: new Date().getTime(),
                 [regionName]: game
             };
             
-            //pensar variable mas pequeña?
             // TODO refactorizar ref2
-            ref.orderByChild("international_gamecode").equalTo(iGamecode).once("value").then(function(snapshot) {
+            ref.orderByChild("gamecode_intl").equalTo(iGamecode).once("value").then(function(snapshot) {
                 // COINCIDE LUEGO EXISTE
                 if (snapshot.val() !== null) {
                     var gameRef = Object.keys(snapshot.val())[0];
                     var data = snapshot.val()[gameRef];
-                    console.log("[" + region + "] -  Updating: " + title);
+                    console.log("[" + region + "] -  Updating: " + title + " | " + data.gamecode_intl + " = " + iGamecode);
                     var ref2 = database.ref(`/games/${gameRef}`);
                     ref2.update(Object.assign(dataToStore, regionData(region, game)))
                 }else {
                     // NO COINCIDE LUEGO SE CREA
-                    var hash = toolbox.hashGenerator(title);
+                    title_clean = toolbox.cleanTitle(title);
+                    var hash = toolbox.hashGenerator(title_clean);
                     var ref2 = database.ref(`/games/${hash}`);
+                    console.log("[" + region + "] -  Creating: " + title + " | " + iGamecode);
                     ref2.update(Object.assign(dataToStore, regionData(region, game)))
                 }
             });
@@ -75,69 +86,66 @@ var db = {
             //TODAVIA SIN GAMECODE LUEGO NO TENEMOS PATRON INTERNACIONAL
             // PROBAMOS POR SI ENCONTRAMOS POR EL TITULO UN MATCH
             //TITLE RAW NEW EN UNA VAR
-            ref.orderByChild("title_raw").equalTo(title_raw).once("value").then(function(snapshot) {
+            var ref = database.ref(`/games/`);
+            var title_clean = toolbox.cleanTitle(title);
+            var dataToStore = {
+                last_verification: new Date().getTime(),
+                [regionName]: game
+            };
+            ref.orderByChild("title_clean").equalTo(title_clean).once("value").then(function(snapshot) {
                 // COINCIDE LUEGO EXISTE
                 if (snapshot.val() !== null) {
                     var gameRef = Object.keys(snapshot.val())[0];
                     var data = snapshot.val()[gameRef];
-                    console.log("[" + region + "] -  Updating: " + title);
+                    console.log("[" + region + "] -  Updating: " + title + " | " + data.title_clean + " = " + title_clean);
                     var ref2 = database.ref(`/games/${gameRef}`);
                     ref2.update(Object.assign(dataToStore, regionData(region, game)))
                 }else {
                     // NO COINCIDE LUEGO SE CREA
-                    var hash = toolbox.hashGenerator(title);
-                    var ref2 = database.ref(`/games/${hash}`);
-                    ref2.update(Object.assign(dataToStore, regionData(region, game)))
+                    var hash = toolbox.hashGenerator(title_clean);
+                    var ref3 = database.ref(`/games/${hash}`);
+                    console.log("[" + region + "] -  Creating: " + title + " | " + title_clean);
+                    ref3.update(Object.assign(dataToStore, regionData(region, game)))
                 }
             });
             
-            
-            
-            // CREO QUE CON ESTA MEGA FUNCION DE SAVE GAME YA NO HACE FALTA LA DE ASIA
         }
         
-        
-        /*
-        var hash = toolbox.hashGenerator(title);
-        var regionName = regionCode(region)
-        var ref = database.ref(`/games/${hash}`);
-        var dataToStore = {
-            last_verification: new Date().getTime(),
-            [regionName]: game
-        };
-        
-        ref.update(Object.assign(dataToStore, regionData(region, game)))
-        */
     },
-    saveGameAsia: function(game, gameCode){
+    flushDB: function(parameter) {
+        var ref = database.ref(`/`);
+         ref.update({
+            [parameter]: ""
+        });
+    },
+    getGames: function(cb) {
         var ref = database.ref(`/games/`);
-        ref.orderByChild("international_gamecode").equalTo(gameCode).once("value").then(function(snapshot) {
+        ref.orderByChild("release_date").once("value").then(function(snapshot) {
             if (snapshot.val() !== null) {
-                var gameRef = Object.keys(snapshot.val())[0];
-                var data = snapshot.val()[gameRef];
-                var title = ""
-                if(typeof data.title !== 'undefined') {
-                    title = data.title
-                }else {
-                    title = game.TitleName
-                }
-                console.log("[JPN] -  Updating: " + title);
-                db.saveGame(game, title, "asia", gameCode);
-                
-                
-                // PROBLEMA TM DE DARK SOULS
+                cb(false, {data: snapshot.val()});
             } else {
-                var title = game.TitleName
-                console.log("[JPN] - New: " + title)
-                db.saveGame(game, title, "asia");
+                cb(true, {msg: "No games"})
             }
         });
     },
-    flushDB: function() {
-        var ref = database.ref(`/`);
-         ref.update({
-            games: ""
+    getGame: function(gameID, cb) {
+        var ref = database.ref(`/games/`);
+        ref.orderByChild("international_gamecode").equalTo(gameID).once("value").then(function(snapshot) {
+            if (snapshot.val() !== null) {
+                var gameRef = Object.keys(snapshot.val())[0]
+                cb(false, {data: snapshot.val()[gameRef]});
+            } else {
+                cb(true, {msg: "Not found"})
+            }
         });
     }
 }
+
+
+// No te lo dejes pa mas tarde...
+//const Jp_CURRENT = "https://www.nintendo.co.jp/data/software/xml-system/switch-onsale.xml";
+//const JP_COMING = "https://www.nintendo.co.jp/data/software/xml-system/switch-coming.xml";
+//const countries = require("country-data").countries;
+//const regions = require("country-data").regions;
+
 module.exports = db
