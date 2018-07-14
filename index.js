@@ -1,6 +1,8 @@
 var nintendo = require('./eshop');
 var Scheduled = require("scheduled");
 
+/*
+
 var usaCron = new Scheduled({
     id: "usaCron",
     pattern: "48 * * * * *", // Tarea a las 10:00
@@ -25,6 +27,9 @@ var jpnCron = new Scheduled({
     }
 }).start();
 
+*/
+
+
 /*
 //http://www.nncron.ru/help/EN/working/cron-format.htm
 //http://www.nncron.ru/help/EN/working/cron-format.htm
@@ -32,7 +37,7 @@ var jpnCron = new Scheduled({
 
 */
 //nintendo.getUsa();
-//nintendo.getEur();
+nintendo.getEur();
 //nintendo.getJpn();
 
 
@@ -41,3 +46,4 @@ var jpnCron = new Scheduled({
 //const db = require("./db");
 //db.flushDB("games");
 
+// LOGS CON WINSTON?

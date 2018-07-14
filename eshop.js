@@ -1,10 +1,10 @@
 const request = require('request');
 var db = require('./db');
 var xml2js = require('xml2js');
+const msg = require("./msg_conf")
 
 var parseString = require('xml2js').parseString;
 var https = require('https');
-
 var parser = new xml2js.Parser({explicitArray : false});
 
 function xmlToJson(url, callback) {
@@ -55,8 +55,9 @@ var nintendo = {
             if (!error && response.statusCode == 200) {
                 
                 let info = JSON.parse(body)
-                //let region = "america"
-                console.log("Current: " + url);
+                let region = "usa"
+                if(control.offset == 0){console.log("[" + region + "] " + msg.start("Starting the USA game check"))}
+                console.log("[" + region + "] - Checking url: " + url);
                 if(info && info.games && info.games.game){
                     
                     let games = info.games.game
@@ -68,12 +69,11 @@ var nintendo = {
                         db.saveGame(games[i], title, "usa", gamecode)
                         americaTotalGames++;
                     }
-                    console.log("he terminado de añadir " + americaTotalGames)
+                    console.log("[" + region + "] I successfully retrieved " + americaTotalGames + " games")
                     control.offset += control.limit;
-                    console.log(control.offset)
                     nintendo.getUsa();
-                }else {console.log("End of the History....");
-                console.log("Total Games:", americaTotalGames)}
+                }else {console.log("[" + region + "] End of the list of games to check - END");
+                console.log("[" + region + "] Total Games checked:", americaTotalGames)}
                 
             }
         })
@@ -91,7 +91,7 @@ var nintendo = {
                     let title = games[i].title
                     let gamecode = games[i].product_code_txt[0]
                     db.saveGame(games[i], title,region, gamecode)
-                    console.log("Adding [EUR]" + title)
+                    //console.log("Adding [EUR]" + title)
                     europeTotalGames++;
                 }
                 console.log("I have added " + europeTotalGames)

@@ -1,6 +1,7 @@
 const admin = require("firebase-admin");
 const serviceAccount = require("./credentials/firebase-service-account.json");
-var toolbox = require("./toolbox");
+const toolbox = require("./toolbox");
+const msg = require("./msg_conf")
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
@@ -70,7 +71,7 @@ var db = {
                 if (snapshot.val() !== null) {
                     var gameRef = Object.keys(snapshot.val())[0];
                     var data = snapshot.val()[gameRef];
-                    console.log("[" + region + "] -  Updating: " + title + " | " + data.gamecode_intl + " = " + iGamecode);
+                    console.log("[" + region + "] " + msg.success("Updating: ") + title + " | " + data.gamecode_intl + " = " + iGamecode);
                     var ref2 = database.ref(`/games/${gameRef}`);
                     ref2.update(Object.assign(dataToStore, regionData(region, game)))
                 }else {
@@ -78,7 +79,7 @@ var db = {
                     title_clean = toolbox.cleanTitle(title);
                     var hash = toolbox.hashGenerator(title_clean);
                     var ref2 = database.ref(`/games/${hash}`);
-                    console.log("[" + region + "] -  Creating: " + title + " | " + iGamecode);
+                    console.log("[" + region + "] " + msg.warning("Creating: ") + title + " | " + iGamecode);
                     ref2.update(Object.assign(dataToStore, regionData(region, game)))
                 }
             });
@@ -97,14 +98,14 @@ var db = {
                 if (snapshot.val() !== null) {
                     var gameRef = Object.keys(snapshot.val())[0];
                     var data = snapshot.val()[gameRef];
-                    console.log("[" + region + "] -  Updating: " + title + " | " + data.title_clean + " = " + title_clean);
+                    console.log("[" + region + "] " + msg.success("Updating: ") + title + " | " + data.title_clean + " = " + title_clean);
                     var ref2 = database.ref(`/games/${gameRef}`);
                     ref2.update(Object.assign(dataToStore, regionData(region, game)))
                 }else {
                     // NO COINCIDE LUEGO SE CREA
                     var hash = toolbox.hashGenerator(title_clean);
                     var ref3 = database.ref(`/games/${hash}`);
-                    console.log("[" + region + "] -  Creating: " + title + " | " + title_clean);
+                    console.log("[" + region + "] " + msg.warning("Creating: ") + title + " | " + title_clean);
                     ref3.update(Object.assign(dataToStore, regionData(region, game)))
                 }
             });
