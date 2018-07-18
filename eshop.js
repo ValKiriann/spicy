@@ -1,12 +1,24 @@
+/** 
+* This is the eshop module. Here we control the functions that make the conections to the apis of Nintendo divided by Continents.
+* @module eshop
+* @exports module:nintendo
+*/
 const request = require('request');
 var db = require('./db');
 var xml2js = require('xml2js');
 const msg = require("./msg_conf")
-
 var parseString = require('xml2js').parseString;
 var https = require('https');
 var parser = new xml2js.Parser({explicitArray : false});
 
+/**
+ * Default function for xml2js library
+ * @function xmlToJson
+ * @param {string} url - the url to prepare
+ * @param {function} callback - The callback function to execute
+ * @requires module:https
+ * @requires module:xml2js.parseString
+ */
 function xmlToJson(url, callback) {
   var req = https.get(url, function(res) {
     var xml = '';
@@ -32,18 +44,17 @@ function xmlToJson(url, callback) {
 }
 
 
-
 let url = "";
 let control = {
     limit: 200,
     offset: 0
 }
-let americaTotalGames = 0;
-let europeTotalGames = 0;
-let asiaTotalGames = 0;
+let usaTotalGames = 0;
+let eurTotalGames = 0;
+let jpnTotalGames = 0;
+
 
 var nintendo = {
-
     getUsa: function(properties) {
         if(properties){
             //quito shop=ncom para que guarde más
@@ -67,13 +78,13 @@ var nintendo = {
                         var title = games[i].title
                         var gamecode = games[i].game_code
                         db.saveGame(games[i], title, "usa", gamecode)
-                        americaTotalGames++;
+                        usaTotalGames++;
                     }
-                    console.log("[" + region + "] I successfully retrieved " + americaTotalGames + " games")
+                    console.log("[" + region + "] I successfully retrieved " + usaTotalGames + " games")
                     control.offset += control.limit;
                     nintendo.getUsa();
                 }else {console.log("[" + region + "] End of the list of games to check - END");
-                console.log("[" + region + "] Total Games checked:", americaTotalGames)}
+                console.log("[" + region + "] Total Games checked:", usaTotalGames)}
                 
             }
         })
@@ -92,9 +103,9 @@ var nintendo = {
                     let gamecode = games[i].product_code_txt[0]
                     db.saveGame(games[i], title,region, gamecode)
                     //console.log("Adding [EUR]" + title)
-                    europeTotalGames++;
+                    eurTotalGames++;
                 }
-                console.log("I have added " + europeTotalGames)
+                console.log("I have added " + eurTotalGames)
             }
         })
     },
@@ -115,25 +126,13 @@ var nintendo = {
                 var gameCode = games[i].InitialCode
                 var title = games[i].TitleName
                 db.saveGame(games[i], title, "jpn", gameCode)
-                asiaTotalGames++;
+                jpnTotalGames++;
             }
             
-            console.log("I have added " + asiaTotalGames)
+            console.log("I have added " + jpnTotalGames)
           
         })
     }
 }
-
-
-
-/**
- * Represents a book.
- * @constructor
- * @param {string} title - The title of the book.
- * @param {string} author - The author of the book.
- */
-function Book(title, author) {
-}
-
 
 module.exports = nintendo

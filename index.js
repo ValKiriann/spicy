@@ -1,11 +1,12 @@
 var nintendo = require('./eshop');
 var Scheduled = require("scheduled");
 
+
 /*
 
 var usaCron = new Scheduled({
     id: "usaCron",
-    pattern: "48 * * * * *", // Tarea a las 10:00
+    pattern: "51 * * * * *", // Tarea a las 10:00
     task: function(){
         nintendo.getUsa();
     }
@@ -13,7 +14,7 @@ var usaCron = new Scheduled({
 
 var eurCron = new Scheduled({
     id: "eurCron",
-    pattern: "50 * * * * *", // Tarea a las 10:15
+    pattern: "52 * * * * *", // Tarea a las 10:15
     task: function(){
         nintendo.getEur();
     }
@@ -21,14 +22,13 @@ var eurCron = new Scheduled({
 
 var jpnCron = new Scheduled({
     id: "eurCron",
-    pattern: "52 * * * * *", // Tarea a las 10:15
+    pattern: "53 * * * * *", // Tarea a las 10:15
     task: function(){
         nintendo.getJpn();
     }
 }).start();
 
 */
-
 
 /*
 //http://www.nncron.ru/help/EN/working/cron-format.htm
@@ -37,7 +37,7 @@ var jpnCron = new Scheduled({
 
 */
 //nintendo.getUsa();
-nintendo.getEur();
+//nintendo.getEur();
 //nintendo.getJpn();
 
 
@@ -47,3 +47,17 @@ nintendo.getEur();
 //db.flushDB("games");
 
 // LOGS CON WINSTON?
+const SwitchEshop = require('nintendo-switch-eshop');
+function shops() {
+    var p = SwitchEshop.getShopsAmerica();
+    p.then(function(value) {
+   // cumplimiento
+   console.log(typeof(value))
+   console.log(value.length)
+   console.log(value)
+  }, function(reason) {
+  // rechazo
+  console.log("no funciona")
+});
+}
+shops();

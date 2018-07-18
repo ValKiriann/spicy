@@ -54,6 +54,7 @@ function regionData (region, game) {
 
 
 var db = {
+// TODO CAMBIAR last_verification por last_check?
     saveGame: function (game, title, region, gamecode){
         if(toolbox.validGamecode(gamecode)){
             // GAMECODE EXISTE LUEGO TENEMOS PATRON INTERNACIONAL
@@ -71,7 +72,7 @@ var db = {
                 if (snapshot.val() !== null) {
                     var gameRef = Object.keys(snapshot.val())[0];
                     var data = snapshot.val()[gameRef];
-                    console.log("[" + region + "] " + msg.success("Updating: ") + title + " | " + data.gamecode_intl + " = " + iGamecode);
+                    //console.log("[" + region + "] " + msg.success("Updating: ") + title + " | " + data.gamecode_intl + " = " + iGamecode);
                     var ref2 = database.ref(`/games/${gameRef}`);
                     ref2.update(Object.assign(dataToStore, regionData(region, game)))
                 }else {
@@ -98,7 +99,7 @@ var db = {
                 if (snapshot.val() !== null) {
                     var gameRef = Object.keys(snapshot.val())[0];
                     var data = snapshot.val()[gameRef];
-                    console.log("[" + region + "] " + msg.success("Updating: ") + title + " | " + data.title_clean + " = " + title_clean);
+                    //console.log("[" + region + "] " + msg.success("Updating: ") + title + " | " + data.title_clean + " = " + title_clean);
                     var ref2 = database.ref(`/games/${gameRef}`);
                     ref2.update(Object.assign(dataToStore, regionData(region, game)))
                 }else {
@@ -112,6 +113,23 @@ var db = {
             
         }
         
+    },
+    saveShop: function(country, status, continent){
+        console.log(country);
+        /*
+        var ref = database.ref(`/shops/${continent}/${country.alpha2}`);
+        // TODO refactor para el added_at
+        // TODO refactor traducir lo snombres de paises a español
+        var dataToStore = {
+            added_at: new Date().getTime(),
+            last_verification: new Date().getTime(),
+            currencies: country.currencies,
+            emoji: country.emoji,
+            name: country.name,
+            status: status
+        };
+        ref.update(dataToStore);
+        */
     },
     flushDB: function(parameter) {
         var ref = database.ref(`/`);
@@ -141,12 +159,5 @@ var db = {
         });
     }
 }
-
-
-// No te lo dejes pa mas tarde...
-//const Jp_CURRENT = "https://www.nintendo.co.jp/data/software/xml-system/switch-onsale.xml";
-//const JP_COMING = "https://www.nintendo.co.jp/data/software/xml-system/switch-coming.xml";
-//const countries = require("country-data").countries;
-//const regions = require("country-data").regions;
 
 module.exports = db

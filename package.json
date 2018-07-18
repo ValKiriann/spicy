@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/ValKiriann/spicy#readme",
   "dependencies": {
+    "country-data": "0.0.31",
     "dotenv": "^6.0.0",
     "express": "^4.16.3",
     "firebase-admin": "^5.12.1",
