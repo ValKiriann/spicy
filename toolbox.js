@@ -7,6 +7,8 @@
 * @exports module:toolbox.iGamecodeGenerator
 */
 var crypto = require('crypto');
+const request = require ("request");
+
 /**
  * Returns the title cleaned and prepared for database
  * @module module:toolbox.cleanTitle
@@ -51,4 +53,18 @@ function iGamecodeGenerator(gamecode) {
     return intl_gamecode;
 }
 
-module.exports = { hashGenerator, iGamecodeGenerator, validGamecode, cleanTitle };
+
+//@see: https://stackoverflow.com/a/38428075
+// @valkiriann: Sacar a la libreria (toolbox) de utilidades....
+function promiseRequest(url) {
+  return new Promise(function (resolve, reject) {
+    request(url, function (error, res, body) {
+      if (!error && res.statusCode == 200) {
+        resolve(body);
+      } else {
+        reject(error);
+      }
+    });
+  });
+}
+module.exports = { hashGenerator, iGamecodeGenerator, validGamecode, cleanTitle, promiseRequest };

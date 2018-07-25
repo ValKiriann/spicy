@@ -114,10 +114,9 @@ var db = {
         }
         
     },
-    saveShop: function(country, status, continent){
-        console.log(country);
-        /*
+    saveShop: function(country, mode, continent){
         var ref = database.ref(`/shops/${continent}/${country.alpha2}`);
+        console.log(`/shops/${continent}/${country.alpha2}`)
         // TODO refactor para el added_at
         // TODO refactor traducir lo snombres de paises a español
         var dataToStore = {
@@ -126,10 +125,9 @@ var db = {
             currencies: country.currencies,
             emoji: country.emoji,
             name: country.name,
-            status: status
+            mode: mode
         };
         ref.update(dataToStore);
-        */
     },
     flushDB: function(parameter) {
         var ref = database.ref(`/`);
